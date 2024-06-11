@@ -49,34 +49,6 @@ pub fn Radio(
     });
   });
 
-  let mut merged_attrs = vec![
-    ("type", "button".into_attribute()),
-    ("role", "radio".into_attribute()),
-    (
-      "aria-checked",
-      (move || checked.get().to_string()).into_attribute(),
-    ),
-    (
-      "data-state",
-      (move || {
-        if checked.get() {
-          "checked"
-        } else {
-          "unchecked"
-        }
-      })
-      .into_attribute(),
-    ),
-    ("data-disabled", disabled.into_attribute()),
-    (
-      "disabled",
-      (move || disabled.get().then_some("")).into_attribute(),
-    ),
-    ("value", value.clone().into_attribute()),
-  ];
-
-  merged_attrs.extend(attrs);
-
   provide_context(RadioContextValue {
     checked: Signal::derive(move || checked.get()),
     disabled: Signal::derive(move || disabled.get()),
@@ -84,6 +56,20 @@ pub fn Radio(
 
   view! {
     <Primitive
+      {..attrs}
+      attr:type="button"
+      attr:role="radio"
+      attr:aria-checked=move || checked.get().to_string()
+      attr:data-state=move || {
+        if checked.get() {
+          "checked"
+        } else {
+          "unchecked"
+        }
+      }
+      attr:data-disabled=disabled
+      attr:disabled=move || disabled.get().then_some("")
+      attr:value=value.clone()
       element=html::button
       on:click=move |ev: MouseEvent| {
         on_click.call(ev.clone());
@@ -101,7 +87,6 @@ pub fn Radio(
         }
       }
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children()}
@@ -135,37 +120,28 @@ pub fn RadioIndicator(
     use_context().expect("RadioIndicator must be used in a Radio component");
 
   let is_present = Signal::derive(move || force_mount.get() || checked.get());
-
   let presence = create_presence(is_present, node_ref);
-  let mut merged_attrs = attrs.clone();
-
-  merged_attrs.extend([
-    (
-      "data-state",
-      (move || {
-        if checked.get() {
-          "checked"
-        } else {
-          "unchecked"
-        }
-      })
-      .into_attribute(),
-    ),
-    ("data-disabled", disabled.into_attribute()),
-  ]);
 
   let children = StoredValue::new(children);
 
   view! {
     <Show when=move || presence.get()>
-      <Primitive
-        element=html::span
-        node_ref=node_ref
-        attrs=merged_attrs.clone()
-        as_child=as_child
-      >
-        {children.with_value(|children| children())}
-      </Primitive>
+        <Primitive
+          {..attrs.clone()}
+          attr:data-state=move || {
+            if checked.get() {
+              "checked"
+            } else {
+              "unchecked"
+            }
+          }
+          attr:data-disabled=disabled.clone()
+          element=html::span
+          node_ref=node_ref
+          as_child=as_child
+        >
+          {children.with_value(|children| children())}
+        </Primitive>
     </Show>
   }
 }

@@ -139,28 +139,18 @@ pub(crate) fn RovingFocusGroup(
     focusable_items: focusable_items_count,
   });
 
-  let mut merged_attrs = vec![
-    (
-      "tabindex",
-      Signal::derive(move || {
+  view! {
+    <Primitive
+      {..attrs}
+      element=html::div
+      attr:tabindex=move || {
         if is_tabbing_back_out.get() || focusable_items_count.get() == 0 {
           -1
         } else {
           0
         }
-      })
-      .into_attribute(),
-    ),
-    (
-      "data-orientation",
-      (move || orientation.with(|orientation| orientation.to_string())).into_attribute(),
-    ),
-  ];
-
-  merged_attrs.extend(attrs);
-
-  view! {
-    <Primitive element=html::div
+      }
+      attr:data-orientation=move || orientation.get().map(|orientation| orientation.to_string())
       on:mousedown=move |ev: MouseEvent| {
           on_mouse_down.call(ev);
         is_click_focus.set_value(true);
@@ -208,7 +198,6 @@ pub(crate) fn RovingFocusGroup(
         set_is_tabbing_back_out.set(false);
       }
       node_ref=collection_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children()}
@@ -269,23 +258,14 @@ pub(crate) fn RovingFocusGroupItem(
     }
   });
 
-  let mut merged_attrs = vec![
-    (
-      "tabindex",
-      Signal::derive(move || if is_current_tab_stop.get() { 0 } else { -1 }).into_attribute(),
-    ),
-    (
-      "data-orientation",
-      (move || orientation.get().map(|orientation| orientation.to_string())).into_attribute(),
-    ),
-  ];
-
-  merged_attrs.extend(attrs);
-
   view! {
-    <Primitive element=html::span
+    <Primitive
+      {..attrs}
+      attr:tabindex=move || if is_current_tab_stop.get() { 0 } else { -1 }
+      attr:data-orientation=move || orientation.get().map(|orientation| orientation.to_string())
+      element=html::span
       on:mousedown=move |ev: MouseEvent| {
-          on_mouse_down.call(ev.clone());
+        on_mouse_down.call(ev.clone());
 
         if !focusable.get() {
           ev.prevent_default();
@@ -367,7 +347,6 @@ pub(crate) fn RovingFocusGroupItem(
         }
       }
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children()}

@@ -15,11 +15,10 @@ pub fn LabelRoot(
 
   #[prop(optional, into)] as_child: MaybeProp<bool>,
 ) -> impl IntoView {
-  let mut merged_attrs = attrs.clone();
-  merged_attrs.push(("for", for_html.into_attribute()));
-
   view! {
     <Primitive
+      {..attrs}
+      attr:for=for_html
       element=html::label
       on:mousedown=move |ev: MouseEvent| {
         on_mouse_down.call(ev.clone());
@@ -29,7 +28,6 @@ pub fn LabelRoot(
         }
       }
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children()}

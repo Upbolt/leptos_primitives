@@ -261,27 +261,19 @@ fn ToggleGroup(
     disabled: Signal::derive(move || disabled.get()),
   });
 
-  let mut merged_attrs = vec![
-    ("role", "group".into_attribute()),
-    (
-      "dir",
-      (move || direction.get().to_string()).into_attribute(),
-    ),
-  ];
-
-  merged_attrs.extend(attrs);
-
   let children = StoredValue::new(children);
-  let attrs = StoredValue::new(merged_attrs);
+  let attrs = StoredValue::new(attrs);
 
   view! {
     <Show
       when=move || roving_focus.get()
       fallback=move || view! {
         <Primitive
+          {..attrs.get_value()}
+          attr:role="group"
+          attr:dir=move || direction.get().to_string()
           element=html::div
           node_ref=node_ref
-          attrs=attrs.get_value()
           as_child=as_child
         >
           {children.with_value(|children| children())}
@@ -295,9 +287,11 @@ fn ToggleGroup(
         should_loop=Signal::derive(move || should_loop.get())
       >
         <Primitive
+          {..attrs.get_value()}
+          attr:role="group"
+          attr:dir=move || direction.get().to_string()
           element=html::div
           node_ref=node_ref
-          attrs=attrs.get_value()
           as_child=as_child
         >
           {children.with_value(|children| children())}
@@ -334,20 +328,9 @@ pub fn ToggleGroupItem(
   let is_disabled = Signal::derive(move || context_disabled.get() || disabled.get());
   let focusable = Signal::derive(move || !is_disabled.get());
 
-  let mut merged_attrs = attrs.clone();
-
-  if kind == ToggleGroupValueKind::Single {
-    merged_attrs.extend([
-      ("role", "radio".into_attribute()),
-      (
-        "aria-checked",
-        Signal::derive(move || is_pressed.get().to_string()).into_attribute(),
-      ),
-    ]);
-  }
-
   let children = StoredValue::new(children);
-  let attrs = StoredValue::new(merged_attrs);
+  let kind = StoredValue::new(kind);
+  let attrs = StoredValue::new(attrs);
   let value = StoredValue::new(value);
 
   view! {
@@ -355,6 +338,9 @@ pub fn ToggleGroupItem(
       when=move || roving_focus.get()
       fallback=move || view! {
         <ToggleRoot
+          {..attrs.get_value()}
+          attr:role=move || (kind.get_value() == ToggleGroupValueKind::Single).then_some("radio")
+          attr:aria-checked=move || (kind.get_value() == ToggleGroupValueKind::Single).then_some(is_pressed.get().to_string())
           disabled=is_disabled
           pressed=is_pressed
           on_pressed_changed=Callback::new(move |pressed| {
@@ -365,7 +351,6 @@ pub fn ToggleGroupItem(
             }
           })
           node_ref=node_ref
-          attrs=attrs.get_value()
           as_child=as_child
         >
           {children.with_value(|children| children())}
@@ -378,6 +363,9 @@ pub fn ToggleGroupItem(
         active=is_pressed
       >
         <ToggleRoot
+          {..attrs.get_value()}
+          attr:role=move || (kind.get_value() == ToggleGroupValueKind::Single).then_some("radio")
+          attr:aria-checked=move || (kind.get_value() == ToggleGroupValueKind::Single).then_some(is_pressed.get().to_string())
           disabled=is_disabled
           pressed=is_pressed
           on_pressed_changed=Callback::new(move |pressed| {
@@ -388,7 +376,6 @@ pub fn ToggleGroupItem(
             }
           })
           node_ref=node_ref
-          attrs=attrs.get_value()
           as_child=as_child
         >
           {children.with_value(|children| children())}

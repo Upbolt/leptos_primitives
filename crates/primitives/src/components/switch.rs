@@ -66,32 +66,24 @@ pub fn SwitchRoot(
     disabled: Signal::derive(move || disabled.get()),
   });
 
-  let mut merged_attrs = attrs.clone();
-  merged_attrs.extend([
-    ("type", "button".into_attribute()),
-    ("role", "switch".into_attribute()),
-    (
-      "aria-checked",
-      Signal::derive(move || checked.get()).into_attribute(),
-    ),
-    ("aria-required", required.into_attribute()),
-    (
-      "data-state",
-      Signal::derive(move || {
+  let attr_value = value.clone();
+
+  view! {
+    <Primitive
+      {..attrs}
+      attr:type="button"
+      attr:role="switch"
+      attr:aria-checked=checked
+      attr:aria-required=required
+      attr:data-state=move || {
         if checked.get().unwrap_or(false) {
           "checked"
         } else {
           "unchecked"
         }
-      })
-      .into_attribute(),
-    ),
-    ("data-disabled", disabled.into_attribute()),
-    ("value", value.clone().into_attribute()),
-  ]);
-
-  view! {
-    <Primitive
+      }
+      attr:data-disabled=disabled
+      attr:value=attr_value
       element=html::button
       on:click=move |ev: MouseEvent| {
         on_click.call(ev.clone());
@@ -107,7 +99,6 @@ pub fn SwitchRoot(
         }
       }
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children()}
@@ -138,32 +129,21 @@ pub fn SwitchThumb(
   let SwitchContextValue { checked, disabled } =
     use_context().expect("SwitchThumb must be used in a SwitchRoot component");
 
-  let mut merged_attrs = attrs.clone();
-  merged_attrs.extend([
-    (
-      "data-state",
-      Signal::derive(move || {
+  let children = StoredValue::new(children);
+
+  view! {
+    <Primitive
+      {..attrs}
+      attr:data-state=move || {
         if checked.get() {
           "checked"
         } else {
           "unchecked"
         }
-      })
-      .into_attribute(),
-    ),
-    (
-      "data-disabled",
-      Signal::derive(move || disabled.get().then_some("")).into_attribute(),
-    ),
-  ]);
-
-  let children = StoredValue::new(children);
-
-  view! {
-    <Primitive
+      }
+      attr:data-disabled=move || disabled.get().then_some("")
       element=html::span
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children.with_value(|children| children.as_ref().map(|children| children()))}

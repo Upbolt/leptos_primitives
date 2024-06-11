@@ -53,28 +53,19 @@ pub fn CollapsibleRoot(
     }),
   });
 
-  let mut merged_attrs = vec![
-    (
-      "data-state",
-      (move || {
+  view! {
+    <Primitive
+      {..attrs}
+      attr:data-state=move || {
         if open.get().unwrap_or(false) {
           "open"
         } else {
           "closed"
         }
-      })
-      .into_attribute(),
-    ),
-    ("data-disabled", (move || disabled.get()).into_attribute()),
-  ];
-
-  merged_attrs.extend(attrs);
-
-  view! {
-    <Primitive
+      }
+      attr:data-disabled=disabled
       element=html::div
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children()}
@@ -100,28 +91,20 @@ pub fn CollapsibleTrigger(
   } = use_context::<CollapsibleContextValue>()
     .expect("CollapsibleTrigger must be used in a CollapsibleRoot component");
 
-  let mut merged_attrs = vec![
-    ("aria-controls", (move || content_id.get()).into_attribute()),
-    ("aria-expanded", (move || open.get()).into_attribute()),
-    (
-      "data-state",
-      (move || if open.get() { "open" } else { "closed" }).into_attribute(),
-    ),
-    ("data-disabled", (move || disabled.get()).into_attribute()),
-    ("disabled", (move || disabled.get()).into_attribute()),
-  ];
-
-  merged_attrs.extend(attrs);
-
   view! {
     <Primitive
+      {..attrs}
+      attr:aria-controls=content_id
+      attr:aria-expanded=open
+      attr:data-state=move || if open.get() { "open" } else { "closed" }
+      attr:data-disabled=disabled
+      attr:disabled=disabled
       element=html::button
       on:click=move |ev: MouseEvent| {
         on_click.call(ev);
         on_open_toggle.call(());
       }
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       {children()}
@@ -276,35 +259,23 @@ fn CollapsibleContentImpl(
       );
   });
 
-  let mut merged_attrs = vec![
-    (
-      "data-state",
-      (move || {
+  let children = StoredValue::new(children);
+
+  view! {
+    <Primitive
+      {..attrs}
+      attr:data-state=move || {
         if open.get() {
           "open"
         } else {
           "closed"
         }
-      })
-      .into_attribute(),
-    ),
-    ("data-disabled", (move || disabled.get()).into_attribute()),
-    ("id", content_id.into_attribute()),
-    (
-      "hidden",
-      (move || !(is_open.get() || present_state.get())).into_attribute(),
-    ),
-  ];
-
-  merged_attrs.extend(attrs);
-
-  let children = StoredValue::new(children);
-
-  view! {
-    <Primitive
+      }
+      attr:data-disabled=disabled
+      attr:id=content_id
+      attr:hidden=move || !(is_open.get() || present_state.get())
       element=html::div
       node_ref=node_ref
-      attrs=merged_attrs
       as_child=as_child
     >
       <Show when=move || is_open.get()>
