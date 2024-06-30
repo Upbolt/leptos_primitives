@@ -3,6 +3,7 @@ pub mod aspect_ratio;
 pub mod avatar;
 pub mod checkbox;
 pub mod collapsible;
+pub(crate) mod dismissable_layer;
 pub mod label;
 pub mod primitive;
 pub mod progress;
